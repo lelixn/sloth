@@ -19,7 +19,13 @@
     "commands": [
       {
         "command": "sloth.hello",
-        "title": "Sloth: Hello"
+        "title": "Sloth: Hello",
+        "category": "Sloth"
+      },
+      {
+        "command": "sloth.gitStatus",
+        "title": "Sloth: Git Status",
+        "category": "Sloth"
       }
     ]
   },

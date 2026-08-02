@@ -22,6 +22,41 @@ export class GitServiceError extends Error {
   }
 }
 
+let cachedGitService: GitService | null = null;
+let cachedPath: string | null = null;
+
+/**
+ * Returns a cached instance of GitService for the target workspace directory.
+ * Reuses the existing instance if the workspace path has not changed.
+ *
+ * @param customPath Optional workspace path override.
+ * @returns Cached GitService instance.
+ */
+export function getGitService(customPath?: string): GitService {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  const targetPath = customPath || (workspaceFolders && workspaceFolders.length > 0 ? workspaceFolders[0].uri.fsPath : undefined);
+
+  if (!targetPath) {
+    throw new GitServiceError('No workspace folder is currently open in VS Code.');
+  }
+
+  if (cachedGitService && cachedPath === targetPath) {
+    return cachedGitService;
+  }
+
+  cachedGitService = new GitService(targetPath);
+  cachedPath = targetPath;
+  return cachedGitService;
+}
+
+/**
+ * Clears the cached GitService instance (e.g. when workspace folders change).
+ */
+export function clearGitServiceCache(): void {
+  cachedGitService = null;
+  cachedPath = null;
+}
+
 /**
  * Service encapsulating Git workflow operations using simple-git.
  */
