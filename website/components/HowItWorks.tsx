@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Code2, Sloth, Rocket } from "lucide-react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
 interface StepItem {
