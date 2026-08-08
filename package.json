@@ -26,6 +26,11 @@
         "command": "sloth.gitStatus",
         "title": "Sloth: Git Status",
         "category": "Sloth"
+      },
+      {
+        "command": "sloth.generateCommit",
+        "title": "Sloth: Generate Commit Message",
+        "category": "Sloth"
       }
     ]
   },

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { registerHelloCommand } from './commands/hello';
 import { registerStatusCommand } from './commands/status';
+import { registerGenerateCommitCommand } from './commands/generateCommit';
 import { clearGitServiceCache } from './services/gitService';
 import { getSlothOutputChannel } from './utils/outputChannel';
 
@@ -24,6 +25,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   registerHelloCommand(context);
   registerStatusCommand(context);
+  registerGenerateCommitCommand(context);
 }
 
 export function deactivate(): void {
