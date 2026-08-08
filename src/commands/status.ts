@@ -1,11 +1,12 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { GitService, GitServiceError, getGitService } from '../services/gitService';
+import { getSlothOutputChannel } from '../utils/outputChannel';
 
 /**
- * Formats repository Git status into a human-readable Markdown string.
+ * Formats repository Git status into a styled Output Channel report string.
  */
-function formatStatusMarkdown(
+function formatStatusReport(
   repoName: string,
   branch: string,
   commitHash: string,
@@ -14,31 +15,31 @@ function formatStatusMarkdown(
   modified: number,
   untracked: number,
   isClean: boolean
-): vscode.MarkdownString {
-  const md = new vscode.MarkdownString();
-  md.appendMarkdown(`### 🦥 Sloth Git Status\n\n`);
-  md.appendMarkdown(`**Repository:** ${repoName}\n\n`);
-  md.appendMarkdown(`**Branch:** ${branch}\n\n`);
-  md.appendMarkdown(`**Last Commit:** ${commitMsg}\n\n`);
-  md.appendMarkdown(`**Commit:** ${commitHash}\n\n`);
-  md.appendMarkdown(`**Changes:**\n\n`);
-  md.appendMarkdown(`- ✅ ${staged} staged\n`);
-  md.appendMarkdown(`- 📝 ${modified} modified\n`);
-  md.appendMarkdown(`- 📄 ${untracked} untracked\n\n`);
-  md.appendMarkdown(`**Working Tree:** ${isClean ? '✅ Working tree clean' : '⚠️ Changes detected'}`);
-  return md;
+): string {
+  const line = '══════════════════════════════════';
+  const treeStatus = isClean ? '✅ Working tree clean' : '⚠ Changes detected';
+
+  return [
+    line, '🦥 Sloth Git Status', line, '',
+    'Repository', repoName, '',
+    'Branch', branch, '',
+    'Last Commit', commitMsg, '',
+    'Commit', commitHash, '',
+    'Changes', '',
+    `✅ Staged      : ${staged}`,
+    `📝 Modified    : ${modified}`,
+    `📄 Untracked   : ${untracked}`, '',
+    'Working Tree', '', treeStatus, '', line
+  ].join('\n');
 }
 
 /**
  * Registers the 'sloth.gitStatus' command with VS Code extension context.
- * Supports dependency injection via gitServiceProvider parameter.
- *
- * @param context The extension context for pushing disposables.
- * @param gitServiceProvider Function providing GitService instance (defaults to getGitService).
  */
 export function registerStatusCommand(
   context: vscode.ExtensionContext,
-  gitServiceProvider: (path?: string) => GitService = getGitService
+  gitServiceProvider: (path?: string) => GitService = getGitService,
+  channelProvider: () => vscode.OutputChannel = getSlothOutputChannel
 ): void {
   const disposable = vscode.commands.registerCommand('sloth.gitStatus', async () => {
     const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -60,22 +61,18 @@ export function registerStatusCommand(
         commitHash = lastCommit.hash.substring(0, 7);
         commitMsg = lastCommit.message;
       } catch {
-        // Handle uncommitted initial repository state
+        // Initial state before first commit
       }
 
-      const isClean = status.isClean();
-      const markdown = formatStatusMarkdown(
-        repoName,
-        branch,
-        commitHash,
-        commitMsg,
-        status.staged.length,
-        status.modified.length,
-        status.not_added.length,
-        isClean
+      const report = formatStatusReport(
+        repoName, branch, commitHash, commitMsg,
+        status.staged.length, status.modified.length, status.not_added.length, status.isClean()
       );
 
-      void vscode.window.showInformationMessage(markdown.value);
+      const outputChannel = channelProvider();
+      outputChannel.clear();
+      outputChannel.appendLine(report);
+      outputChannel.show(true);
     } catch (error) {
       if (error instanceof GitServiceError && error.message.includes('not a Git repository')) {
         void vscode.window.showWarningMessage('No Git repository found in the current workspace.');
