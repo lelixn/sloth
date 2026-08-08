@@ -31,10 +31,17 @@
         "command": "sloth.generateCommit",
         "title": "Sloth: Generate Commit Message",
         "category": "Sloth"
+      },
+      {
+        "command": "sloth.commit",
+        "title": "Sloth: Commit",
+        "category": "Sloth"
       }
     ]
   },
   "scripts": {
+    "dev": "npm --prefix website run dev",
+    "build:web": "npm --prefix website run build",
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -w -p ./",

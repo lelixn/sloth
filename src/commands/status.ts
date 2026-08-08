@@ -41,7 +41,7 @@ export function registerStatusCommand(
   gitServiceProvider: (path?: string) => GitService = getGitService,
   channelProvider: () => vscode.OutputChannel = getSlothOutputChannel
 ): void {
-  const disposable = vscode.commands.registerCommand('sloth.gitStatus', async () => {
+  const disposable = vscode.commands.registerCommand('sloth.gitStatus', async (options?: { append?: boolean }) => {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
       void vscode.window.showWarningMessage('Open a folder before using Sloth.');
@@ -70,8 +70,13 @@ export function registerStatusCommand(
       );
 
       const outputChannel = channelProvider();
-      outputChannel.clear();
-      outputChannel.appendLine(report);
+      if (options?.append) {
+        outputChannel.appendLine('');
+        outputChannel.appendLine(report);
+      } else {
+        outputChannel.clear();
+        outputChannel.appendLine(report);
+      }
       outputChannel.show(true);
     } catch (error) {
       if (error instanceof GitServiceError && error.message.includes('not a Git repository')) {
